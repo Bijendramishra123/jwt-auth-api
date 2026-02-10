@@ -13,6 +13,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.ExpiredJwtException;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -30,8 +32,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // skip public endpoints
-        if (path.equals("/api/users/register") || path.equals("/api/users/login")) {
+        
+        if (path.equals("/api/users/register") ||
+            path.equals("/api/users/login") ||
+            path.equals("/api/users/forgot-password") ||
+            path.equals("/api/users/reset-password")) {
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -40,25 +46,36 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-            String token = authHeader.substring(7);
+            try {
 
-            String email = jwtUtil.extractEmail(token);
-            String role = jwtUtil.extractRole(token);
+                String token = authHeader.substring(7);
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                String email = jwtUtil.extractEmail(token);
+                String role = jwtUtil.extractRole(token);
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                email,
-                                null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                        );
+                if (email != null &&
+                        SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    email,
+                                    null,
+                                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                            );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+
+            } catch (ExpiredJwtException e) {
+                // ✅ token expired → ignore and continue
+                System.out.println("JWT expired: " + e.getMessage());
+            } catch (Exception e) {
+                // ✅ invalid token → ignore
+                System.out.println("Invalid JWT: " + e.getMessage());
             }
         }
 

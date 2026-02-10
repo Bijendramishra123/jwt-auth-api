@@ -1,6 +1,7 @@
 package com.jwt.jwt_auth.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -13,8 +14,11 @@ public class User {
     private String name;
     private String email;
     private String password;
+    private String role;
 
-    private String role;   // 👈 ADD THIS
+    // 👇 NEW FIELDS (forgot password)
+    private String resetToken;
+    private LocalDateTime tokenExpiry;
 
     // getters + setters
     public String getRole() { return role; }
@@ -31,4 +35,11 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    // 👇 NEW getters/setters
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public LocalDateTime getTokenExpiry() { return tokenExpiry; }
+    public void setTokenExpiry(LocalDateTime tokenExpiry) { this.tokenExpiry = tokenExpiry; }
 }

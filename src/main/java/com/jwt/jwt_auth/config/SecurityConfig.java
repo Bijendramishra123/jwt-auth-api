@@ -25,13 +25,16 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-            	    .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-            	    .requestMatchers("/api/users/admin").hasRole("ADMIN")
-            	    .requestMatchers("/api/users/profile").hasAnyRole("USER", "ADMIN")
-            	    .anyRequest().authenticated()
-            	)
+                .requestMatchers(
+                        "/api/users/register",
+                        "/api/users/login",
+                        "/api/users/forgot-password",
+                        "/api/users/reset-password"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
             .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
