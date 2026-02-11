@@ -25,14 +25,15 @@ public class JwtFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
         String path = request.getServletPath();
 
-        
+        // ✅ PUBLIC ROUTES → JWT CHECK SKIP
         if (path.equals("/api/users/register") ||
             path.equals("/api/users/login") ||
             path.equals("/api/users/forgot-password") ||
@@ -47,11 +48,10 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
             try {
-
                 String token = authHeader.substring(7);
 
                 String email = jwtUtil.extractEmail(token);
-                String role = jwtUtil.extractRole(token);
+                String role  = jwtUtil.extractRole(token);
 
                 if (email != null &&
                         SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -71,10 +71,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
 
             } catch (ExpiredJwtException e) {
-                // ✅ token expired → ignore and continue
+                // token expired → ignore
                 System.out.println("JWT expired: " + e.getMessage());
             } catch (Exception e) {
-                // ✅ invalid token → ignore
+                // invalid token → ignore
                 System.out.println("Invalid JWT: " + e.getMessage());
             }
         }
